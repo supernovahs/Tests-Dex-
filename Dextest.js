@@ -66,6 +66,37 @@ describe("My Dapp", function () {
     expect(Number(dexbal).toFixed(2)).to.equal("0.91");
 
   })
+  it("deposit function working correctly", async function(){
+    await myContract.approve(myDexContract.address,ethers.utils.parseEther("300"));
+    await myDexContract.CreateLiquidityFirstTime(ethers.utils.parseEther("100"),{value: ethers.utils.parseEther("10")});
+    const deposit = await myDexContract.deposit({value: ethers.utils.parseEther("1.0")});
+    const contractBal= await myDexContract.getEthBalance();
+    const dexEthbal= ethers.utils.formatEther(contractBal);
+    const totalliquidity= await myDexContract.TotalLiquidity();
+    expect( ethers.utils.formatEther(totalliquidity)).to.equal("11.0");
+    const dexTokenBal = await myContract.balanceOf(myDexContract.address);
+    expect(Number(ethers.utils.formatEther(dexTokenBal)).toFixed(2)).to.equal("110.00");
+    const liquidityMapping = await myDexContract.liquidity(owner.address);
+    expect(ethers.utils.formatEther(liquidityMapping)).to.equal("11.0");
+
+
+
+  })
+
+  it("withdraw function correctly working", async function(){
+    await myContract.approve(myDexContract.address,ethers.utils.parseEther("300"));
+    await myDexContract.CreateLiquidityFirstTime(ethers.utils.parseEther("100"),{value: ethers.utils.parseEther("10")});
+    await myContract.approve(addr1.address,ethers.utils.parseEther("50"));
+    await myContract.transfer(addr1.address, ethers.utils.parseEther("49"));
+    console.log(ethers.utils.formatEther(await myContract.balanceOf(addr1.address)));
+    // await myDexContract.connect(addr1).deposit({value: ethers.utils.parseEther("1")});
+
+    await expect( myDexContract.withdraw(ethers.utils.parseEther("11"))).to.be.revertedWith("not enough liquidity");
+
+    // const liquidityMapping = await myDexContract.liquidity(addr1.address);
+    // expect(ethers.utils.formatEther(liquidityMapping)).to.equal("2.0");
+  })
+
   
 
 
